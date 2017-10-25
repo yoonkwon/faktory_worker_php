@@ -6,5 +6,7 @@
             "email": "adrian.slade@basekit.com"
         }
     ],
-    "require": {}
+    "require": {
+        "symfony/console": "^3.3"
+    }
 }

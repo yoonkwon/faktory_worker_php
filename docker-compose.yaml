@@ -1,7 +1,7 @@
 version: '2'
 services:
   php:
-    image: php:7.1-alpine
+    build: .
     volumes:
       - .:/opt/php_faktory_worker
     working_dir: /opt/php_faktory_worker

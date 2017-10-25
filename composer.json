@@ -1,0 +1,10 @@
+{
+    "name": "basekit/faktory_worker_php",
+    "authors": [
+        {
+            "name": "Adrian Slade",
+            "email": "adrian.slade@basekit.com"
+        }
+    ],
+    "require": {}
+}

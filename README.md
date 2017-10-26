@@ -1,7 +1,27 @@
-## Building a faktory Docker image
+## Install via composer
 
 ```
-git clone faktory...blah faktory
-cd faktory
-docker build --build-arg=GOLANG_VERSION=1.9.1 --build-arg=ROCKSDB_VERSION=5.7.3 -t faktory .
+composer require basekit/faktory_worker_php
+```
+
+## Add jobs
+
+```php
+$client = new FaktoryClient($faktoryHost, $faktoryPort);
+$job = new FaktoryJob($id, $type, $args);
+$client->push($job);
+```
+
+## Process jobs
+
+```php
+$client = new FaktoryClient($faktoryHost, $faktoryPort);
+$worker = new FaktoryWorker($client);
+$worker->register('somejob', function ($job) {
+    echo "You got the job buddy!\n";
+    var_dump($job);
+});
+
+$worker->setQueues(['critical', 'default', 'bulk']);
+$worker->run();
 ```

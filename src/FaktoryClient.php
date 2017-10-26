@@ -14,14 +14,41 @@ class FaktoryClient
 
     public function push(FaktoryJob $job)
     {
-        $this->writeLine('PUSH', json_encode($job));
+        $socket = $this->connect();
+        $response = $this->writeLine($socket, 'PUSH', json_encode($job));
+        $this->close($socket);
     }
 
-    public function writeLine($command, $json)
+    public function connect()
     {
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         socket_connect($socket, $this->faktoryHost, $this->faktoryPort);
-        socket_write($socket, $command . ' ' . $json);
+
+        $response = $this->readLine($socket);
+        if ($response !== "+HI {\"v\":\"1\"}\r\n") {
+            throw new \Exception('Hi not received :(');
+        }
+
+        $response = $this->writeLine($socket, 'HELLO', '{"wid":"foo"}');
+
+        return $socket;
+    }
+
+    public function readLine($socket)
+    {
+        return socket_read($socket, 1024, PHP_BINARY_READ);
+    }
+
+    public function writeLine($socket, $command, $json)
+    {
+        $buffer = $command . ' ' . $json . "\r\n";
+        socket_write($socket, $buffer, strlen($buffer));
+        $read = $this->readLine($socket);
+        return $read;
+    }
+
+    public function close($socket)
+    {
         socket_close($socket);
     }
 }

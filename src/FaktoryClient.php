@@ -46,7 +46,6 @@ class FaktoryClient
     {
         $socket = $this->connect();
         $response = $this->writeLine($socket, 'ACK', json_encode(['jid' => $jobId]));
-        error_log($response);
         $this->close($socket);
     }
 

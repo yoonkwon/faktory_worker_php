@@ -29,8 +29,7 @@ class FaktoryClient
             throw new \Exception('Hi not received :(');
         }
 
-        $response = $this->writeLine($socket, 'HELLO', '{"wid":"foo"}');
-
+        $this->writeLine($socket, 'HELLO', '{"wid":"foo"}');
         return $socket;
     }
 

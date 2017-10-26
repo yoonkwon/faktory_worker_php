@@ -42,6 +42,14 @@ class FaktoryClient
         return $response;
     }
 
+    public function ack($jobId)
+    {
+        $socket = $this->connect();
+        $response = $this->writeLine($socket, 'ACK', json_encode(['jid' => $jobId]));
+        error_log($response);
+        $this->close($socket);
+    }
+
     private function connect()
     {
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);

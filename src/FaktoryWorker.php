@@ -31,6 +31,8 @@ class FaktoryWorker
         if ($job !== null) {
             $callable = $this->jobTypes[$job['jobtype']];
             call_user_func($callable, $job);
+
+            $this->client->ack($job['jid']);
         }
     }
 }

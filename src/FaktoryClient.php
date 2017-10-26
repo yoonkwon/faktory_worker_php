@@ -19,12 +19,36 @@ class FaktoryClient
         $this->close($socket);
     }
 
-    public function connect()
+    public function fetch(array $queues)
+    {
+        $socket = $this->connect();
+        $response = $this->writeLine($socket, 'FETCH', implode(' ', $queues));
+
+        $char = $response[0];
+        if ($char == '$') {
+            $count = trim(substr($response, 1, strpos($response, "\r\n")));
+            $data = null;
+            if ($count > 0) {
+                $data = substr($response, strlen($count) + 1);
+                $this->close($socket);
+                return json_decode($data, true);
+            }
+
+            return $data;
+        }
+
+        $this->close($socket);
+
+        return $response;
+    }
+
+    private function connect()
     {
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         socket_connect($socket, $this->faktoryHost, $this->faktoryPort);
 
         $response = $this->readLine($socket);
+
         if ($response !== "+HI {\"v\":\"1\"}\r\n") {
             throw new \Exception('Hi not received :(');
         }
@@ -33,12 +57,16 @@ class FaktoryClient
         return $socket;
     }
 
-    public function readLine($socket)
+    private function readLine($socket, $length = 1024)
     {
-        return socket_read($socket, 1024, PHP_BINARY_READ);
+        $bytes = socket_read($socket, $length, PHP_BINARY_READ);
+        while (strpos($bytes, "\r\n") === false) {
+            $bytes .= socket_read($socket, $length - strlen($bytes), PHP_BINARY_READ);
+        }
+        return $bytes;
     }
 
-    public function writeLine($socket, $command, $json)
+    private function writeLine($socket, $command, $json)
     {
         $buffer = $command . ' ' . $json . "\r\n";
         socket_write($socket, $buffer, strlen($buffer));
@@ -46,7 +74,7 @@ class FaktoryClient
         return $read;
     }
 
-    public function close($socket)
+    private function close($socket)
     {
         socket_close($socket);
     }

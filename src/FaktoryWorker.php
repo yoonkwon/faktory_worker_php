@@ -3,16 +3,20 @@ declare(strict_types=1);
 
 namespace BaseKit\Faktory;
 
+use Monolog\Logger;
+
 class FaktoryWorker
 {
     private $client;
+    private $logger;
     private $queues = [];
     private $jobTypes = [];
     private $stop = false;
 
-    public function __construct(FaktoryClient $client)
+    public function __construct(FaktoryClient $client, Logger $logger)
     {
         $this->client = $client;
+        $this->logger = $logger;
     }
 
     public function setQueues(array $queues)
@@ -41,6 +45,8 @@ class FaktoryWorker
             $job = $this->client->fetch($this->queues);
 
             if ($job !== null) {
+                $this->logger->debug($job['jid']);
+
                 $callable = $this->jobTypes[$job['jobtype']];
 
                 $pid = pcntl_fork();
@@ -51,9 +57,14 @@ class FaktoryWorker
                 if ($pid > 0) {
                     pcntl_wait($status);
                 } else {
-                    call_user_func($callable, $job);
-                    $this->client->ack($job['jid']);
-                    exit(0);
+                    try {
+                        call_user_func($callable, $job);
+                        $this->client->ack($job['jid']);
+                    } catch (\Exception $e) {
+                        $this->client->fail($job['jid']);
+                    } finally {
+                        exit(0);
+                    }
                 }
             }
             usleep(100);

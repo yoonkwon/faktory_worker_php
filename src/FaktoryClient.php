@@ -49,6 +49,13 @@ class FaktoryClient
         $this->close($socket);
     }
 
+    public function fail($jobId)
+    {
+        $socket = $this->connect();
+        $response = $this->writeLine($socket, 'FAIL', json_encode(['jid' => $jobId]));
+        $this->close($socket);
+    }
+
     private function connect()
     {
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);

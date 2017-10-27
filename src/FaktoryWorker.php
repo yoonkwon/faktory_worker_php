@@ -30,9 +30,18 @@ class FaktoryWorker
 
         if ($job !== null) {
             $callable = $this->jobTypes[$job['jobtype']];
-            call_user_func($callable, $job);
 
-            $this->client->ack($job['jid']);
+            $pid = pcntl_fork();
+            if ($pid === -1) {
+                throw new \Exception('Could not fork');
+            }
+
+            if ($pid > 0) {
+                pcntl_wait($status);
+            } else {
+                call_user_func($callable, $job);
+                $this->client->ack($job['jid']);
+            }
         }
     }
 }

@@ -12,4 +12,5 @@ $worker->register('somejob', function ($job) {
 });
 
 $worker->setQueues(['critical', 'default', 'bulk']);
-$worker->run();
+$daemonize = true;
+$worker->run($daemonize);

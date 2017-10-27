@@ -8,6 +8,7 @@ class FaktoryWorker
     private $client;
     private $queues = [];
     private $jobTypes = [];
+    private $stop = false;
 
     public function __construct(FaktoryClient $client)
     {
@@ -24,24 +25,38 @@ class FaktoryWorker
         $this->jobTypes[$jobType] = $callable;
     }
 
-    public function run()
+    public function run(bool $daemonize = false)
     {
-        $job = $this->client->fetch($this->queues);
+        pcntl_async_signals(true);
 
-        if ($job !== null) {
-            $callable = $this->jobTypes[$job['jobtype']];
+        pcntl_signal(SIGTERM, function ($signo) {
+            exit(0);
+        });
 
-            $pid = pcntl_fork();
-            if ($pid === -1) {
-                throw new \Exception('Could not fork');
+        pcntl_signal(SIGINT, function ($signo) {
+            exit(0);
+        });
+
+        do {
+            $job = $this->client->fetch($this->queues);
+
+            if ($job !== null) {
+                $callable = $this->jobTypes[$job['jobtype']];
+
+                $pid = pcntl_fork();
+                if ($pid === -1) {
+                    throw new \Exception('Could not fork');
+                }
+
+                if ($pid > 0) {
+                    pcntl_wait($status);
+                } else {
+                    call_user_func($callable, $job);
+                    $this->client->ack($job['jid']);
+                    exit(0);
+                }
             }
-
-            if ($pid > 0) {
-                pcntl_wait($status);
-            } else {
-                call_user_func($callable, $job);
-                $this->client->ack($job['jid']);
-            }
-        }
+            usleep(100);
+        } while($daemonize && !$this->stop);
     }
 }

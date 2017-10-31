@@ -4,6 +4,10 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Ramsey\Uuid\Uuid;
 
+if (false === class_exists('Ramsey\Uuid\Uuid')) {
+    die("Ramsey/uuid is required to run these examples.\r\nRun: composer require ramsey/uuid\r\n");
+}
+
 /*
  * Use nc to listen for connections
  *

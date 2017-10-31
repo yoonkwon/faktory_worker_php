@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace BaseKit\Faktory;
 
-use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 class FaktoryWorker
 {
@@ -13,7 +13,7 @@ class FaktoryWorker
     private $client;
 
     /**
-     * @var Logger
+     * @var LoggerInterface
      */
     private $logger;
 
@@ -32,7 +32,7 @@ class FaktoryWorker
      */
     private $stop = false;
 
-    public function __construct(FaktoryClient $client, Logger $logger)
+    public function __construct(FaktoryClient $client, LoggerInterface $logger)
     {
         $this->client = $client;
         $this->logger = $logger;

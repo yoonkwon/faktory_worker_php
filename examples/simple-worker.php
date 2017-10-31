@@ -1,8 +1,13 @@
 <?php
+
 require __DIR__ . '/../vendor/autoload.php';
 
 use BaseKit\Faktory\FaktoryClient;
 use BaseKit\Faktory\FaktoryWorker;
+
+if (false === class_exists('Monolog\Logger')) {
+    die("Monolog is required to run these examples.\r\nRun: composer require monolog/monolog\r\n");
+}
 
 $logger = new Monolog\Logger('worker');
 $handler = new Monolog\Handler\StreamHandler('php://stdout', Monolog\Logger::DEBUG);

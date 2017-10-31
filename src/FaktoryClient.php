@@ -1,21 +1,29 @@
 <?php
+
 namespace BaseKit\Faktory;
 
 class FaktoryClient
 {
+    /**
+     * @var string
+     */
     private $faktoryHost;
+
+    /**
+     * @var int
+     */
     private $faktoryPort;
 
-    public function __construct(string $faktoryHost, string $faktoryPort)
+    public function __construct(string $faktoryHost, int $faktoryPort)
     {
         $this->faktoryHost = $faktoryHost;
         $this->faktoryPort = $faktoryPort;
     }
 
-    public function push(FaktoryJob $job)
+    public function push(FaktoryJob $job) : void
     {
         $socket = $this->connect();
-        $response = $this->writeLine($socket, 'PUSH', json_encode($job));
+        $this->writeLine($socket, 'PUSH', json_encode($job));
         $this->close($socket);
     }
 
@@ -25,7 +33,7 @@ class FaktoryClient
         $response = $this->writeLine($socket, 'FETCH', implode(' ', $queues));
 
         $char = $response[0];
-        if ($char == '$') {
+        if ($char === '$') {
             $count = trim(substr($response, 1, strpos($response, "\r\n")));
             $data = null;
             if ($count > 0) {
@@ -42,17 +50,17 @@ class FaktoryClient
         return $response;
     }
 
-    public function ack($jobId)
+    public function ack(string $jobId) : void
     {
         $socket = $this->connect();
-        $response = $this->writeLine($socket, 'ACK', json_encode(['jid' => $jobId]));
+        $this->writeLine($socket, 'ACK', json_encode(['jid' => $jobId]));
         $this->close($socket);
     }
 
-    public function fail($jobId)
+    public function fail(string $jobId) : void
     {
         $socket = $this->connect();
-        $response = $this->writeLine($socket, 'FAIL', json_encode(['jid' => $jobId]));
+        $this->writeLine($socket, 'FAIL', json_encode(['jid' => $jobId]));
         $this->close($socket);
     }
 
@@ -71,7 +79,7 @@ class FaktoryClient
         return $socket;
     }
 
-    private function readLine($socket, $length = 1024)
+    private function readLine($socket, int $length = 1024) : string
     {
         $bytes = socket_read($socket, $length, PHP_BINARY_READ);
         while (strpos($bytes, "\r\n") === false) {
@@ -80,7 +88,7 @@ class FaktoryClient
         return $bytes;
     }
 
-    private function writeLine($socket, $command, $json)
+    private function writeLine($socket, string $command, string $json) : string
     {
         $buffer = $command . ' ' . $json . "\r\n";
         socket_write($socket, $buffer, strlen($buffer));
@@ -88,7 +96,7 @@ class FaktoryClient
         return $read;
     }
 
-    private function close($socket)
+    private function close($socket) : void
     {
         socket_close($socket);
     }

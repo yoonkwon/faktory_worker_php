@@ -7,6 +7,9 @@ use Psr\Log\LoggerInterface;
 
 class FaktoryWorker
 {
+    /**
+     * @var FaktoryClient
+     */
     private $client;
 
     /**
@@ -14,8 +17,19 @@ class FaktoryWorker
      */
     private $logger;
 
+    /**
+     * @var array
+     */
     private $queues = [];
+
+    /**
+     * @var array
+     */
     private $jobTypes = [];
+
+    /**
+     * @var bool
+     */
     private $stop = false;
 
     public function __construct(FaktoryClient $client, LoggerInterface $logger)
@@ -24,17 +38,17 @@ class FaktoryWorker
         $this->logger = $logger;
     }
 
-    public function setQueues(array $queues)
+    public function setQueues(array $queues) : void
     {
         $this->queues = $queues;
     }
 
-    public function register($jobType, callable $callable)
+    public function register(string $jobType, callable $callable) : void
     {
         $this->jobTypes[$jobType] = $callable;
     }
 
-    public function run(bool $daemonize = false)
+    public function run(bool $daemonize = false) : void
     {
         pcntl_async_signals(true);
 
